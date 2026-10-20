@@ -9,7 +9,7 @@
 [![CI](https://github.com/hamlet-khachatryan/STOMP/actions/workflows/ci.yml/badge.svg)](https://github.com/hamlet-khachatryan/STOMP/actions/workflows/ci.yml)
 [![Docs](https://github.com/hamlet-khachatryan/STOMP/actions/workflows/docs.yml/badge.svg)](https://hamlet-khachatryan.github.io/STOMP/)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/)
-[![License](https://img.shields.io/github/license/hamlet-khachatryan/STOMP)](https://github.com/hamlet-khachatryan/STOMP/LICENSE)
+[![License](https://img.shields.io/github/license/hamlet-khachatryan/STOMP)](https://github.com/hamlet-khachatryan/STOMP/blob/mainLICENSE)
 [![Status](https://img.shields.io/badge/status-beta-orange)](https://github.com/hamlet-khachatryan/STOMP)
 
 > **STOMP was formerly PSEUDO.** The old `pseudo-*` commands still work as
