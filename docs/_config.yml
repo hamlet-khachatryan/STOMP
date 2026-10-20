@@ -1,13 +1,13 @@
-title: PSEUDO
+title: STOMP
 description: Computational framework for debiasing and uncertainty quantification in protein structural models resolved by molecular replacement.
 
-logo: "/assets/images/pseudo_logo_transparent.svg"
+logo: "/assets/images/stomp_logo_transparent.svg"
 
 theme: just-the-docs
 
 aux_links:
   "GitHub":
-    - "https://github.com/hamlet-khachatryan/PSEUDO"
+    - "https://github.com/hamlet-khachatryan/STOMP"
 
 footer_content: "Copyright &copy; 2026 Hamlet Khachatryan, Conor Wild, Frank von Delft."
 

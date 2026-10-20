@@ -11,9 +11,8 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# Task 3 extends these to cover docs.
-SCAN_TARGETS = ["src"]
-SKIP_NAMES = set()
+SCAN_TARGETS = ["src", "docs", "README.md", "pyproject.toml"]
+SKIP_NAMES = {"theory.md"}  # untracked, uses "pseudo" scientifically
 
 LEGACY = re.compile(
     r"PSEUDO"

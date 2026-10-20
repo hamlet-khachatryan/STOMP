@@ -6,4 +6,4 @@ has_children: true
 
 # Guides
 
-Step-by-step guides for each stage of the PSEUDO pipeline.
+Step-by-step guides for each stage of the STOMP pipeline.

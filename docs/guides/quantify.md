@@ -6,20 +6,20 @@ nav_order: 2
 
 # Quantify Guide
 
-The **Quantify** module analyses the ensemble of STOMP maps produced by `pseudo-debias`. It separates true crystallographic signal from bias and outputs debiased CCP4 maps.
+The **Quantify** module analyses the ensemble of STOMP maps produced by `stomp-debias`. It separates true crystallographic signal from bias and outputs debiased CCP4 maps.
 
 ---
 
 ## Quick start
 
 ```bash
-pseudo-quantify --input_path /scratch/results/my_experiment
+stomp-quantify --input_path /scratch/results/my_experiment
 ```
 
 The command auto-detects all experiments inside the workspace. For a single crystal, point it at the crystal subdirectory:
 
 ```bash
-pseudo-quantify --input_path /scratch/results/my_experiment/target_5e5z
+stomp-quantify --input_path /scratch/results/my_experiment/target_5e5z
 ```
 
 ---
@@ -28,7 +28,7 @@ pseudo-quantify --input_path /scratch/results/my_experiment/target_5e5z
 
 | Flag | Short | Default | Description                                     |
 |---|---|---|-------------------------------------------------|
-| `--input_path` | `-p` | *required* | Workspace root produced by `pseudo-debias`.     |
+| `--input_path` | `-p` | *required* | Workspace root produced by `stomp-debias`.     |
 | `--stem` | `-s` | auto | Explicit experiment stem (inferred if omitted). |
 | `--k_factor` | `-k` | `1.0` | Radius multiplier K for atom ownership spheres. Set to `0` to skip bias removal and produce a plain ensemble average. |
 | `--map_cap` | `-c` | `50` | Limit to the first N maps. |
@@ -53,7 +53,7 @@ run_quantification(
 
 ## Required input layout
 
-`pseudo-quantify` expects the directory structure created by `pseudo-debias`:
+`stomp-quantify` expects the directory structure created by `stomp-debias`:
 
 ```
 <crystal>/
@@ -77,10 +77,10 @@ Results are written to `<crystal>/quantify_results/k_{k}_cap_{cap}/`:
 |---|---|
 | `{stem}_signal.ccp4` | Mean debiased density (true signal) |
 | `{stem}_noise.ccp4` | Std-dev of cleaned densities (local noise) |
-| `{stem}_snr.ccp4` | Signal-to-noise ratio — input to `pseudo-analyse` |
+| `{stem}_snr.ccp4` | Signal-to-noise ratio — input to `stomp-analyse` |
 | `{stem}_p_value.ccp4` | Voxel-wise significance (t-test vs bulk solvent) |
 
-A null-distribution parameter file is also saved to `metadata/` for use by `pseudo-analyse` to set a data-driven significance threshold.
+A null-distribution parameter file is also saved to `metadata/` for use by `stomp-analyse` to set a data-driven significance threshold.
 
 ---
 
@@ -123,7 +123,7 @@ sbatch --partition cs05r \
        --cpus-per-task 8 \
        --mem-per-cpu 5G \
        --time 3-00:00:00 \
-       --wrap "pseudo-quantify --input_path /scratch/results/my_screen \
+       --wrap "stomp-quantify --input_path /scratch/results/my_screen \
                                --num_processes 8"
 ```
 
@@ -133,4 +133,4 @@ sbatch --partition cs05r \
 
 ## Parameter reference
 
-See [Configuration Reference — Quantify](../reference#quantify-pseudo-quantify).
+See [Configuration Reference — Quantify](../reference#quantify-stomp-quantify).

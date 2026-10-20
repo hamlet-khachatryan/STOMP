@@ -5,7 +5,7 @@ nav_order: 3
 
 # Python API Reference
 
-Core functions for embedding PSEUDO in Python pipelines or notebooks.
+Core functions for embedding STOMP in Python pipelines or notebooks.
 
 ---
 
@@ -109,7 +109,7 @@ Run bias separation on a single experiment or a screening workspace. In screenin
 
 | Argument | Type | Default | Description                                    |
 |---|---|---|------------------------------------------------|
-| `input_path` | `Path \| str` | *required* | Workspace produced by `pseudo-debias`.         |
+| `input_path` | `Path \| str` | *required* | Workspace produced by `stomp-debias`.         |
 | `stem` | `str \| None` | auto | Explicit experiment stem, inferred if omitted. |
 | `force` | `bool` | `False` | Overwrite existing `quantify_results/`.        |
 | `k_factor` | `float` | `1.5` | Radius multiplier K for ownership spheres.     |
@@ -153,7 +153,7 @@ compute_significance_threshold(
 ) -> float
 ```
 
-Return the raw SNR value *T* such that `P(SNR > T | null) = alpha`. Used by `pseudo-analyse` to derive data-driven MUSE thresholds.
+Return the raw SNR value *T* such that `P(SNR > T | null) = alpha`. Used by `stomp-analyse` to derive data-driven MUSE thresholds.
 
 ---
 
@@ -343,7 +343,7 @@ Returns a `MUSEConfig` with all paper-derived defaults. Suitable for standard el
 snr_map_config(zeta: float = 5.0) -> MUSEConfig
 ```
 
-Returns a `MUSEConfig` preset for SNR CCP4 maps produced by `pseudo-quantify`. Normalization is disabled, the truncation cap is set to 5.0. This is the config used automatically by `pseudo-analyse`.
+Returns a `MUSEConfig` preset for SNR CCP4 maps produced by `stomp-quantify`. Normalization is disabled, the truncation cap is set to 5.0. This is the config used automatically by `stomp-analyse`.
 
 ---
 

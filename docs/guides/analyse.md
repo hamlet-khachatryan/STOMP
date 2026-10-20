@@ -17,10 +17,10 @@ In **screening mode** (multiple experiments in one directory) the module also ge
 
 ```bash
 # Single experiment
-pseudo-analyse --input_path /scratch/results/my_experiment
+stomp-analyse --input_path /scratch/results/my_experiment
 
 # Screening run (all crystals in the directory)
-pseudo-analyse --input_path /scratch/results/my_screen --num_processes 8
+stomp-analyse --input_path /scratch/results/my_screen --num_processes 8
 ```
 
 ---
@@ -102,7 +102,7 @@ It aggregates every crystal's MUSE results into one sortable table and provides 
 
 <p align="center">
   <img src="../assets/images/example_report.png"
-       alt="PSEUDO Screen Results — example report for a ZVN52B fragment screening run"
+       alt="STOMP Screen Results — example report for a ZVN52B fragment screening run"
        style="max-width:100%; border:1px solid #dee2e6; border-radius:6px;">
 </p>
 
@@ -116,7 +116,7 @@ The top of the page shows run-level summary cards:
 | **Analysis complete** | Crystals for which `analyse_results/` exist |
 | **Mean OPIA** | Average OPIA across all completed crystals |
 | **Screening input** | Inferred original screening project directory |
-| **Screening directory** | Path to the PSEUDO workspace root |
+| **Screening directory** | Path to the STOMP workspace root |
 
 ### Table columns
 
@@ -168,8 +168,8 @@ coot --script /path/to/coot/XX01ZVNS2B-x0051_coot_view.py
 The report can be regenerated at any time without re-running analysis using the standalone command:
 
 ```bash
-pseudo-screen-report --input_path /scratch/results/my_screen
-pseudo-screen-report --input_path /scratch/results/my_screen --open_browser
+stomp-screen-report --input_path /scratch/results/my_screen
+stomp-screen-report --input_path /scratch/results/my_screen --open_browser
 ```
 
 `--open_browser` opens `index.html` in the default browser immediately after generation
@@ -216,7 +216,7 @@ fig2.savefig("water_support.pdf")
 
 ## Significance threshold
 
-When null-distribution parameters are present in `metadata/` (produced by `pseudo-quantify`), `pseudo-analyse` automatically sets the OPIA and missing-density thresholds to the SNR value at `p = significance_alpha`. This adapts the scoring to the actual noise floor of the experiment. The threshold is reported in the **SNR (p≤0.05)** column of the screen report and embedded in `{stem}_summary.json` as `significance_snr_threshold`.
+When null-distribution parameters are present in `metadata/` (produced by `stomp-quantify`), `stomp-analyse` automatically sets the OPIA and missing-density thresholds to the SNR value at `p = significance_alpha`. This adapts the scoring to the actual noise floor of the experiment. The threshold is reported in the **SNR (p≤0.05)** column of the screen report and embedded in `{stem}_summary.json` as `significance_snr_threshold`.
 
 ---
 
@@ -246,7 +246,7 @@ sbatch --partition cs05r \
        --cpus-per-task 8 \
        --mem-per-cpu 5G \
        --time 3-00:00:00 \
-       --wrap "pseudo-analyse --input_path /scratch/results/my_screen \
+       --wrap "stomp-analyse --input_path /scratch/results/my_screen \
                               --num_processes 8"
 ```
 

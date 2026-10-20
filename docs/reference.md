@@ -5,11 +5,11 @@ nav_order: 4
 
 # Configuration Reference
 
-All parameters for the three PSEUDO stages. CLI flags and YAML keys share the same names.
+All parameters for the three STOMP stages. CLI flags and YAML keys share the same names.
 
 ---
 
-## Debias (`pseudo-debias`)
+## Debias (`stomp-debias`)
 
 ### `debias` — core omission parameters
 
@@ -53,13 +53,13 @@ Either `structure_path` + `reflections_path` **or** `screening_path` must be pro
 
 ---
 
-## Quantify (`pseudo-quantify`)
+## Quantify (`stomp-quantify`)
 
 Configured entirely via CLI flags (no YAML):
 
 | Flag | Short | Type | Default | Description                                                                                                             |
 |---|---|---|---|-------------------------------------------------------------------------------------------------------------------------|
-| `--input_path` | `-p` | path | *required* | Workspace directory produced by `pseudo-debias`.                                                                        |
+| `--input_path` | `-p` | path | *required* | Workspace directory produced by `stomp-debias`.                                                                        |
 | `--stem` | `-s` | str | auto | Explicit experiment stem. Inferred automatically if omitted.                                                            |
 | `--k_factor` | `-k` | float | `1.0` | Radius multiplier K for atom ownership spheres. Pass `0` to skip marginal bias removal and produce an ensemble average. |
 | `--map_cap` | `-c` | int | `50` | Limit processing to the first N maps (for convergence testing).                                                         |
@@ -67,7 +67,7 @@ Configured entirely via CLI flags (no YAML):
 
 ---
 
-## Analyse (`pseudo-analyse`)
+## Analyse (`stomp-analyse`)
 
 Configured entirely via CLI flags (no YAML):
 
@@ -84,7 +84,7 @@ Configured entirely via CLI flags (no YAML):
 
 ---
 
-## Screen Report (`pseudo-screen-report`)
+## Screen Report (`stomp-screen-report`)
 
 Regenerates the HTML screen report from existing `analyse_results/` data without re-running analysis. Configured entirely via CLI flags:
 
@@ -106,7 +106,7 @@ Outputs written to `<input_path>/`:
 
 ## MUSE scoring parameters (`MUSEConfig`)
 
-These are Python-only parameters, passed to `run_muse()` via a `MUSEConfig` object. They control the internal MUSE scoring algorithm used by `pseudo-analyse`.
+These are Python-only parameters, passed to `run_muse()` via a `MUSEConfig` object. They control the internal MUSE scoring algorithm used by `stomp-analyse`.
 
 ### `DensityScoreConfig`
 

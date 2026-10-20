@@ -25,7 +25,7 @@ Values are resolved in this order:
 **Single structure (CLI flags only):**
 
 ```bash
-pseudo-debias generate-params \
+stomp-debias generate-params \
   --run_name my_experiment \
   --structure_path /data/target.pdb \
   --reflections_path /data/target.mtz \
@@ -54,7 +54,7 @@ slurm:
 ```
 
 ```bash
-pseudo-debias generate-params --config run.yaml
+stomp-debias generate-params --config run.yaml
 ```
 
 **Submit the generated SLURM jobs:**
@@ -99,7 +99,7 @@ generate_slurm_job(cfg)
 Pass a CSV or Diamond SoakDB SQLite file to process many crystals at once:
 
 ```bash
-pseudo-debias generate-params \
+stomp-debias generate-params \
   --config run.yaml \
   --screening_path /data/fragment_screen.csv
 ```
@@ -115,7 +115,7 @@ Each crystal produces ~50 omission parameter files, so a large screening run can
 `screening_chunk_size` (default `1000`) caps the number of omission jobs per sbatch array. The full omission manifest is split into chunks of that size, each chunk gets its own `submit_omission_N.slurm` script and they are chained with `--dependency=afterok` so only one chunk runs at a time.
 
 ```bash
-pseudo-debias generate-params \
+stomp-debias generate-params \
   --config run.yaml \
   --screening_path /data/fragment_screen.csv \
   --screening_chunk_size 500   # at most 500 omission jobs per array
@@ -134,7 +134,7 @@ The complete submission command (with all chunk dependencies) is both printed to
 
 ## MTZ label resolution
 
-Before generating omission `.params` files, PSEUDO reads each MTZ file with gemmi and auto-selects the observed-data and R-free flag columns. This prevents the Phenix error *"Multiple equally suitable arrays of observed xray data found"* and the equivalent error when multiple R-free / Status columns are present.
+Before generating omission `.params` files, STOMP reads each MTZ file with gemmi and auto-selects the observed-data and R-free flag columns. This prevents the Phenix error *"Multiple equally suitable arrays of observed xray data found"* and the equivalent error when multiple R-free / Status columns are present.
 
 ### Auto-detection priority
 
@@ -172,7 +172,7 @@ If a column pair cannot be matched, `generate-params` raises a `ValueError` list
 Set the override and rerun:
 
 ```bash
-pseudo-debias generate-params \
+stomp-debias generate-params \
   --config run.yaml \
   --mtz_f_labels "FTOT,SIGTOT"
 ```
@@ -241,7 +241,7 @@ debias:
 By default, crystals whose first perturbation map (`results/<stem>_0/<stem>_0.mtz`) already exists are skipped. Pass `--force` / `-f` or set `debias.force: true` in YAML to regenerate everything:
 
 ```bash
-pseudo-debias generate-params --config run.yaml --force
+stomp-debias generate-params --config run.yaml --force
 ```
 
 ```yaml
@@ -253,4 +253,4 @@ debias:
 
 ## Parameter reference
 
-See [Configuration Reference — Debias](../reference#debias-pseudo-debias).
+See [Configuration Reference — Debias](../reference#debias-stomp-debias).

@@ -1,38 +1,44 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)"  srcset="docs/assets/images/pseudo_logo_dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="docs/assets/images/pseudo_logo_light.svg">
-    <img src="docs/assets/images/pseudo_logo_light.svg" alt="PSEUDO" width="400">
+    <source media="(prefers-color-scheme: dark)"  srcset="docs/assets/images/stomp_logo_dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="docs/assets/images/stomp_logo_light.svg">
+    <img src="docs/assets/images/stomp_logo_light.svg" alt="STOMP" width="400">
   </picture>
 </p>
 
-[![CI](https://github.com/hamlet-khachatryan/PSEUDO/actions/workflows/ci.yml/badge.svg)](https://github.com/hamlet-khachatryan/PSEUDO/actions/workflows/ci.yml)
-[![Docs](https://github.com/hamlet-khachatryan/PSEUDO/actions/workflows/docs.yml/badge.svg)](https://hamlet-khachatryan.github.io/PSEUDO/)
+[![CI](https://github.com/hamlet-khachatryan/STOMP/actions/workflows/ci.yml/badge.svg)](https://github.com/hamlet-khachatryan/STOMP/actions/workflows/ci.yml)
+[![Docs](https://github.com/hamlet-khachatryan/STOMP/actions/workflows/docs.yml/badge.svg)](https://hamlet-khachatryan.github.io/STOMP/)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/)
-[![License](https://img.shields.io/github/license/hamlet-khachatryan/PSEUDO)](https://github.com/hamlet-khachatryan/PSEUDO/blob/main/LICENSE)
-[![Status](https://img.shields.io/badge/status-beta-orange)](https://github.com/hamlet-khachatryan/PSEUDO)
+[![License](https://img.shields.io/github/license/hamlet-khachatryan/STOMP)](https://github.com/hamlet-khachatryan/STOMP/blob/main/LICENSE)
+[![Status](https://img.shields.io/badge/status-beta-orange)](https://github.com/hamlet-khachatryan/STOMP)
 
-**PSEUDO** is a computational framework for debiasing and experimental uncertainty quantification in protein structural models resolved by molecular replacement.
+> **STOMP was formerly PSEUDO.** The old `pseudo-*` commands still work as
+> aliases: they print a deprecation warning on stderr and will be removed in STOMP 0.3.0.
+> Before installing, remove the deprecated PSEUDO package: `pip uninstall PSEUDO`.
+> Having both installed breaks either one when the other is removed.
+> Scripts that treat any stderr output as failure should switch to the `stomp-*` commands.
+
+**STOMP** is a computational framework for debiasing and experimental uncertainty quantification in protein structural models resolved by molecular replacement.
 
 It provides a three-stage pipeline that runs on HPC clusters via SLURM:
 
 | Stage | Command | What it does |
 |---|---|---|
-| **Debias** | `pseudo-debias` | Generates stochastic omit perturbation (STOMP) maps via Phenix |
-| **Quantify** | `pseudo-quantify` | Separates true signal from phase bias across the map ensemble |
-| **Analyse** | `pseudo-analyse` | Scores every model atom against the debiased SNR map (MUSE) |
+| **Debias** | `stomp-debias` | Generates stochastic omit perturbation (STOMP) maps via Phenix |
+| **Quantify** | `stomp-quantify` | Separates true signal from phase bias across the map ensemble |
+| **Analyse** | `stomp-analyse` | Scores every model atom against the debiased SNR map (MUSE) |
 
 ---
 
 ## Installation
 
 ```bash
-git clone https://github.com/hamlet-khachatryan/PSEUDO.git
-cd PSEUDO
+git clone https://github.com/hamlet-khachatryan/STOMP.git
+cd STOMP
 pip install -e ".[dev]"
 ```
 
-PSEUDO requires the **Phenix Software Suite** for STOMP map calculation. Load it before submitting any SLURM jobs:
+STOMP requires the **Phenix Software Suite** for STOMP map calculation. Load it before submitting any SLURM jobs:
 
 ```bash
 module load phenix
@@ -57,13 +63,13 @@ slurm:
   partition: "cs05r"
 ```
 
-All other parameters fall back to built-in defaults (see [Configuration Reference](https://hamlet-khachatryan.github.io/PSEUDO/reference)).
+All other parameters fall back to built-in defaults (see [Configuration Reference](https://hamlet-khachatryan.github.io/STOMP/reference)).
 
 ---
 
 ## Input modes
 
-PSEUDO accepts three input modes for the debias stage:
+STOMP accepts three input modes for the debias stage:
 
 | Mode | Required fields | Behaviour |
 |---|---|---|
@@ -94,7 +100,7 @@ debias:
 Or via CLI:
 
 ```bash
-pseudo-debias generate-params --config run.yaml \
+stomp-debias generate-params --config run.yaml \
   --sqlite_outcomes "CompChem ready, Deposited" \
   --max_structures 50
 ```
@@ -106,7 +112,7 @@ pseudo-debias generate-params --config run.yaml \
 Three commands take a structure from raw reflections to per-atom density support scores:
 
 ```bash
-pseudo-debias generate-params --config run.yaml
+stomp-debias generate-params --config run.yaml
 ```
 
 ```bash
@@ -115,8 +121,8 @@ sbatch --dependency=afterok:$jid submit_omission.slurm
 ```
 
 ```bash
-pseudo-quantify --input_path /scratch/my_project/my_experiment
-pseudo-analyse  --input_path /scratch/my_project/my_experiment
+stomp-quantify --input_path /scratch/my_project/my_experiment
+stomp-analyse  --input_path /scratch/my_project/my_experiment
 ```
 Quantification results are stored in `<work_dir>/<run_name>/<crystal>/quantify_results/<k_*_cap_*>/`:
 
@@ -142,9 +148,9 @@ Load `{stem}_scored.pdb` in PyMOL and colour by B-factor to visualise density su
 
 ## Screen Report
 
-When running on a **screening directory** (multiple crystals), `pseudo-analyse` automatically generates an interactive HTML summary report at `<screening_dir>/index.html`.
+When running on a **screening directory** (multiple crystals), `stomp-analyse` automatically generates an interactive HTML summary report at `<screening_dir>/index.html`.
 
-![PSEUDO Screen Results](docs/assets/images/example_report.png)
+![STOMP Screen Results](docs/assets/images/example_report.png)
 
 The report provides:
 
@@ -155,32 +161,32 @@ The report provides:
 The report can be regenerated at any time without re-running analysis:
 
 ```bash
-pseudo-screen-report --input_path /scratch/results/my_screen
+stomp-screen-report --input_path /scratch/results/my_screen
 ```
 
-See the [Analyse guide](https://hamlet-khachatryan.github.io/PSEUDO/guides/analyse#screen-report) for full documentation.
+See the [Analyse guide](https://hamlet-khachatryan.github.io/STOMP/guides/analyse#screen-report) for full documentation.
 
 ---
 
 ## Further reading
 
-- [Debias guide](https://hamlet-khachatryan.github.io/PSEUDO/guides/debias) — STOMP map generation, directory layout, batch screening
-- [Quantify guide](https://hamlet-khachatryan.github.io/PSEUDO/guides/quantify) — bias separation algorithm, ownership logic
-- [Analyse guide](https://hamlet-khachatryan.github.io/PSEUDO/guides/analyse) — MUSE scoring methodology, configuration
-- [Configuration reference](https://hamlet-khachatryan.github.io/PSEUDO/reference) — every parameter for all three stages
+- [Debias guide](https://hamlet-khachatryan.github.io/STOMP/guides/debias) — STOMP map generation, directory layout, batch screening
+- [Quantify guide](https://hamlet-khachatryan.github.io/STOMP/guides/quantify) — bias separation algorithm, ownership logic
+- [Analyse guide](https://hamlet-khachatryan.github.io/STOMP/guides/analyse) — MUSE scoring methodology, configuration
+- [Configuration reference](https://hamlet-khachatryan.github.io/STOMP/reference) — every parameter for all three stages
 
 ---
 
 ## Citation
 
-If you use this code — including STOMP maps, the PSEUDO platform, or MUSE scores — in your research, please use the following citation (preprint available soon):
+If you use this code — including STOMP maps, the STOMP platform, or MUSE scores — in your research, please use the following citation (preprint available soon):
 
 ```bibtex
-@software{khachatryan2026pseudo,
-    title     = {PSEUDO: Framework for Phase Uncertainty Estimation of Protein Models},
+@software{khachatryan2026stomp,
+    title     = {STOMP: Framework for Phase Uncertainty Estimation of Protein Models},
     author    = {Khachatryan, Hamlet and Wild, Conor and von Delft, Frank},
     year      = {2026},
-    url       = {https://github.com/hamlet-khachatryan/PSEUDO}
+    url       = {https://github.com/hamlet-khachatryan/STOMP}
 }
 ```
 

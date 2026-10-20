@@ -4,30 +4,36 @@ nav_order: 1
 ---
 
 <p align="center">
-  <img src="{{ '/assets/images/pseudo_logo_light.svg' | relative_url }}" alt="PSEUDO" width="400" style="max-width:100%">
+  <img src="{{ '/assets/images/stomp_logo_light.svg' | relative_url }}" alt="STOMP" width="400" style="max-width:100%">
 </p>
 
-**PSEUDO** is a computational framework for debiasing and experimental uncertainty quantification in protein structural models resolved by molecular replacement.
+> **STOMP was formerly PSEUDO.** The old `pseudo-*` commands still work as
+> aliases: they print a deprecation warning on stderr and will be removed in STOMP 0.3.0.
+> Before installing, remove the deprecated PSEUDO package: `pip uninstall PSEUDO`.
+> Having both installed breaks either one when the other is removed.
+> Scripts that treat any stderr output as failure should switch to the `stomp-*` commands.
+
+**STOMP** is a computational framework for debiasing and experimental uncertainty quantification in protein structural models resolved by molecular replacement.
 
 It provides a three-stage pipeline that runs on HPC clusters via SLURM:
 
 | Stage | Command | What it does |
 |---|---|---|
-| **Debias** | `pseudo-debias` | Generates stochastic omit perturbation (STOMP) maps via Phenix |
-| **Quantify** | `pseudo-quantify` | Separates true signal from phase bias across the map ensemble |
-| **Analyse** | `pseudo-analyse` | Scores every model atom against the debiased SNR map (MUSE) |
+| **Debias** | `stomp-debias` | Generates stochastic omit perturbation (STOMP) maps via Phenix |
+| **Quantify** | `stomp-quantify` | Separates true signal from phase bias across the map ensemble |
+| **Analyse** | `stomp-analyse` | Scores every model atom against the debiased SNR map (MUSE) |
 
 ---
 
 ## Installation
 
 ```bash
-git clone https://github.com/hamlet-khachatryan/PSEUDO.git
-cd PSEUDO
+git clone https://github.com/hamlet-khachatryan/STOMP.git
+cd STOMP
 pip install -e ".[dev]"
 ```
 
-PSEUDO requires the **Phenix Software Suite** for STOMP map calculation. Load it before submitting any SLURM jobs:
+STOMP requires the **Phenix Software Suite** for STOMP map calculation. Load it before submitting any SLURM jobs:
 
 ```bash
 module load phenix
@@ -62,7 +68,7 @@ All other parameters fall back to built-in defaults (see [Configuration Referenc
 
 ## Input modes
 
-PSEUDO accepts three input modes for the debias stage:
+STOMP accepts three input modes for the debias stage:
 
 | Mode | Required fields | Behaviour                                                                     |
 |---|---|-------------------------------------------------------------------------------|
@@ -92,7 +98,7 @@ debias:
 Or via CLI:
 
 ```bash
-pseudo-debias generate-params --config run.yaml \
+stomp-debias generate-params --config run.yaml \
   --sqlite_outcomes "CompChem ready, Deposited" \
   --max_structures 50
 ```
@@ -104,7 +110,7 @@ pseudo-debias generate-params --config run.yaml \
 Three commands take a structure from raw reflections to per-atom density support scores:
 
 ```bash
-pseudo-debias generate-params --config run.yaml
+stomp-debias generate-params --config run.yaml
 ```
 
 ```bash
@@ -121,8 +127,8 @@ jid=$(sbatch --parsable --dependency=afterok:$jid submit_omission_1.slurm)
 ```
 
 ```bash
-pseudo-quantify --input_path /scratch/my_project/my_experiment
-pseudo-analyse  --input_path /scratch/my_project/my_experiment
+stomp-quantify --input_path /scratch/my_project/my_experiment
+stomp-analyse  --input_path /scratch/my_project/my_experiment
 ```
 Quantification results are stored in `<work_dir>/<run_name>/<crystal>/quantify_results/<k_*_cap_*>/`:
 
@@ -148,7 +154,7 @@ Load `{stem}_scored.pdb` in PyMOL and colour by B-factor to visualise density su
 
 ## Screen Report
 
-When `pseudo-analyse` processes a **screening run** (a directory containing multiple crystals), it automatically generates an interactive HTML summary report:
+When `stomp-analyse` processes a **screening run** (a directory containing multiple crystals), it automatically generates an interactive HTML summary report:
 
 ```
 <screening_dir>/index.html
@@ -156,7 +162,7 @@ When `pseudo-analyse` processes a **screening run** (a directory containing mult
 
 <p align="center">
   <img src="assets/images/example_report.png"
-       alt="PSEUDO Screen Results — interactive HTML report"
+       alt="STOMP Screen Results — interactive HTML report"
        style="max-width:100%; border:1px solid #dee2e6; border-radius:6px;">
 </p>
 
@@ -165,7 +171,7 @@ The report collects all crystal results into one table with OPIA and ligand MUSE
 The report can be regenerated at any time from existing analysis results:
 
 ```bash
-pseudo-screen-report --input_path /scratch/results/my_screen
+stomp-screen-report --input_path /scratch/results/my_screen
 ```
 
 See the [Analyse guide](guides/analyse#screen-report) for a full description of every column and the Coot integration.
@@ -217,14 +223,14 @@ Pass ``eliot-tree --help`` to see filtering and formatting options.
 
 ## Citation
 
-If you use this code, including STOMP maps, the PSEUDO platform, or MUSE scores — in your research, please use the following citation (preprint available soon):
+If you use this code, including STOMP maps, the STOMP platform, or MUSE scores — in your research, please use the following citation (preprint available soon):
 
 ```bibtex
-@software{khachatryan2026pseudo,
-    title     = {PSEUDO: Framework for Phase Uncertainty Estimation of Protein Models},
+@software{khachatryan2026stomp,
+    title     = {STOMP: Framework for Phase Uncertainty Estimation of Protein Models},
     author    = {Khachatryan, Hamlet and Wild, Conor and von Delft, Frank},
     year      = {2026},
-    url       = {https://github.com/hamlet-khachatryan/PSEUDO}
+    url       = {https://github.com/hamlet-khachatryan/STOMP}
 }
 ```
 
