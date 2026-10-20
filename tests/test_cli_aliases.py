@@ -94,14 +94,32 @@ def test_distribution_is_stomp():
 
 
 def test_old_distribution_not_installed():
-    # If this fails: run `pip uninstall PSEUDO` (spec R1).
-    with pytest.raises(PackageNotFoundError):
+    # Spec R1. pythonpath=["src"] means a leftover src/PSEUDO.egg-info is also
+    # found, so pip uninstall alone may not be enough.
+    try:
         distribution("PSEUDO")
+    except PackageNotFoundError:
+        return
+    pytest.fail("Old PSEUDO distribution found: run `pip uninstall PSEUDO` "
+                "and delete src/PSEUDO.egg-info")
+
+
+@pytest.mark.parametrize("doc", ["README.md", "docs/index.md"])
+def test_migration_note_mentions_stale_egg_info(doc):
+    text = (SRC.parent / doc).read_text(encoding="utf-8")
+    assert "src/PSEUDO.egg-info" in text
+
+
+def _console_scripts():
+    eps = entry_points()
+    if hasattr(eps, "select"):  # Python >= 3.10
+        return eps.select(group="console_scripts")
+    return eps.get("console_scripts", [])  # Python 3.9 returns a dict
 
 
 @pytest.mark.parametrize("old,new,target,alias", PAIRS)
 def test_console_scripts_registered(old, new, target, alias):
-    eps = {ep.name: ep for ep in entry_points(group="console_scripts")}
+    eps = {ep.name: ep for ep in _console_scripts()}
     assert eps[new].value == target
     assert eps[old].value == f"common.deprecated:{alias}"
     assert callable(eps[new].load())

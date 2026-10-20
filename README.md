@@ -14,7 +14,8 @@
 
 > **STOMP was formerly PSEUDO.** The old `pseudo-*` commands still work as
 > aliases: they print a deprecation warning on stderr and will be removed in STOMP 0.3.0.
-> Before installing, remove the deprecated PSEUDO package: `pip uninstall PSEUDO`.
+> Before installing, remove the deprecated PSEUDO package: `pip uninstall PSEUDO`,
+> then delete any leftover deprecated `src/PSEUDO.egg-info` folder in your checkout.
 > Having both installed breaks either one when the other is removed.
 > Scripts that treat any stderr output as failure should switch to the `stomp-*` commands.
 
