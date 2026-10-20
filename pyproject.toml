@@ -5,9 +5,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 
-name = "PSEUDO"
-version = "0.1.0"
-description = "PSEUDO is a computational framework for debiasing and uncertainty quantification in protein structural models solved by molecular replacement."
+name = "stomp"
+version = "0.2.0"
+description = "STOMP is a computational framework for debiasing and uncertainty quantification in protein structural models solved by molecular replacement."
 authors = [
   {name = "Hamlet Khachatryan", email = "hamlet.khachatryan@ndm.ox.ac.uk"},
   {name = "Conor Wild", email = "c.wild@diamond.ac.uk"},
@@ -46,10 +46,15 @@ cli = [
 ]
 
 [project.scripts]
-pseudo-debias = "debias.cli:debias_cli"
-pseudo-quantify = "quantify.cli:quantify_cli"
-pseudo-analyse = "analyse.cli:analyse_cli"
-pseudo-screen-report = "analyse.cli:screen_report_cli"
+stomp-debias = "debias.cli:debias_cli"
+stomp-quantify = "quantify.cli:quantify_cli"
+stomp-analyse = "analyse.cli:analyse_cli"
+stomp-screen-report = "analyse.cli:screen_report_cli"
+# deprecated aliases (STOMP was formerly PSEUDO) — remove in 0.3.0
+pseudo-debias = "common.deprecated:debias_alias"  # deprecated
+pseudo-quantify = "common.deprecated:quantify_alias"  # deprecated
+pseudo-analyse = "common.deprecated:analyse_alias"  # deprecated
+pseudo-screen-report = "common.deprecated:screen_report_alias"  # deprecated
 
 [tool.setuptools.packages.find]
 where = ["src"]
