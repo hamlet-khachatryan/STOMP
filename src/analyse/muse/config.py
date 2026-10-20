@@ -138,7 +138,7 @@ def default_config() -> MUSEConfig:
 
 def snr_map_config(zeta: float = 5.0) -> MUSEConfig:
     """
-    Return a MUSEConfig preset for SNR CCP4 maps produced by pseudo-quantify
+    Return a MUSEConfig preset for SNR CCP4 maps produced by stomp-quantify
     The truncation cap ``zeta`` is set to 5.0 to avoid clipping meaningful
     high-SNR regions
 

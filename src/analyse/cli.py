@@ -114,7 +114,7 @@ def analyse_cli(input_path, stem, map_path, model_path, k_factor, map_cap,
     "-p",
     required=True,
     type=click.Path(exists=True, file_okay=False, dir_okay=True),
-    help="Root directory of the PSEUDO screening run (the run_name/ directory).",
+    help="Root directory of the STOMP screening run (the run_name/ directory).",
 )
 @click.option(
     "--open_browser",

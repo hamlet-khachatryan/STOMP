@@ -41,7 +41,7 @@ def _resolve_map_path(paths: dict, k_factor: float, map_cap: Optional[int]) -> P
     if not qdir.exists():
         raise FileNotFoundError(
             f"No quantify_results directory found at {qdir}. "
-            "Run 'pseudo quantify' before 'pseudo analyse'."
+            "Run 'stomp-quantify' before 'stomp-analyse'."
         )
 
     if map_cap is not None:
@@ -66,7 +66,7 @@ def _resolve_map_path(paths: dict, k_factor: float, map_cap: Optional[int]) -> P
 
     raise FileNotFoundError(
         f"No SNR map found in {qdir} for k_factor={k_factor}. "
-        "Run 'pseudo-debias' followed by 'pseudo-quantify' to generate maps, "
+        "Run 'stomp-debias' followed by 'stomp-quantify' to generate maps, "
         "or provide a map explicitly with --map_path."
     )
 
@@ -77,7 +77,7 @@ def _resolve_model_path(paths: dict) -> Path:
     if not model_path.exists():
         raise FileNotFoundError(
             f"Original model not found at {model_path}. "
-            "Run 'pseudo-debias' first to generate the processed structure."
+            "Run 'stomp-debias' first to generate the processed structure."
         )
     return model_path
 
@@ -103,7 +103,7 @@ def _load_null_params(paths: dict, k_factor: float, map_cap: int) -> Optional[di
             print(
                 "Warning: No null distribution parameters found in metadata/. "
                 "Significance threshold will use MUSE paper defaults. "
-                "Re-run 'pseudo quantify' to generate null params."
+                "Re-run 'stomp-quantify' to generate null params."
             )
             return None
     with open(null_params_path) as fh:
@@ -126,7 +126,7 @@ def _infer_resolution(paths: dict) -> float:
     if not all_mtz:
         raise FileNotFoundError(
             f"No MTZ files found in {results_dir}. "
-            "Run 'pseudo-debias' to generate omission map ensembles."
+            "Run 'stomp-debias' to generate omission map ensembles."
         )
     return gemmi.read_mtz_file(str(all_mtz[0])).resolution_high()
 

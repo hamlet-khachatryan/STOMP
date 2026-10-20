@@ -559,7 +559,7 @@ def _build_html(
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PSEUDO Screen Results — {screening_dir.name}</title>
+  <title>STOMP Screen Results — {screening_dir.name}</title>
   <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
@@ -576,7 +576,7 @@ def _build_html(
 <div class="container-fluid py-3">
 
   <div class="d-flex align-items-center mb-2">
-    <h2 class="me-3 mb-0">PSEUDO Screen Results</h2>
+    <h2 class="me-3 mb-0">STOMP Screen Results</h2>
     <span class="badge bg-dark fs-6">{screening_dir.name}</span>
   </div>
   <p class="text-muted small">Generated: {timestamp}</p>
