@@ -4,7 +4,7 @@ nav_order: 1
 ---
 
 <p align="center">
-  <img src="{{ '/assets/images/stomp_logo_light.svg' | relative_url }}" alt="STOMP" width="400" style="max-width:100%">
+  <img src="{{ '/assets/images/STOMP_logo.png' | relative_url }}" alt="STOMP" width="400" style="max-width:100%">
 </p>
 
 > **STOMP was formerly PSEUDO.** The old `pseudo-*` commands still work as
