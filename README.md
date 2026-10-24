@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)"  srcset="docs/assets/images/stomp_logo_dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="docs/assets/images/stomp_logo_dark.png">
+    <source media="(prefers-color-scheme: dark)"  srcset="docs/assets/images/STOMP_logo.png">
+    <source media="(prefers-color-scheme: light)" srcset="docs/assets/images/STOMP_logo.png">
     <img src="docs/assets/images/stomp_logo_light.svg" alt="STOMP" width="400">
   </picture>
 </p>
