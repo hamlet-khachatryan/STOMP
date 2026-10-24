@@ -151,8 +151,6 @@ Load `{stem}_scored.pdb` in PyMOL and colour by B-factor to visualise density su
 
 When running on a **screening directory** (multiple crystals), `stomp-analyse` automatically generates an interactive HTML summary report at `<screening_dir>/index.html`.
 
-#![STOMP Screen Results](docs/assets/images/example_report.png)
-
 The report provides:
 
 - **Summary cards** — total crystals, analysis-complete count, mean OPIA across the run
