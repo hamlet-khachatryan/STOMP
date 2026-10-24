@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)"  srcset="docs/assets/images/stomp_logo_dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="docs/assets/images/stomp_logo_light.svg">
+    <source media="(prefers-color-scheme: dark)"  srcset="docs/assets/images/stomp_logo_dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="docs/assets/images/stomp_logo_dark.png">
     <img src="docs/assets/images/stomp_logo_light.svg" alt="STOMP" width="400">
   </picture>
 </p>
@@ -151,7 +151,7 @@ Load `{stem}_scored.pdb` in PyMOL and colour by B-factor to visualise density su
 
 When running on a **screening directory** (multiple crystals), `stomp-analyse` automatically generates an interactive HTML summary report at `<screening_dir>/index.html`.
 
-![STOMP Screen Results](docs/assets/images/example_report.png)
+#![STOMP Screen Results](docs/assets/images/example_report.png)
 
 The report provides:
 
