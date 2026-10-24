@@ -19,7 +19,7 @@
 > Having both installed breaks either one when the other is removed.
 > Scripts that treat any stderr output as failure should switch to the `stomp-*` commands.
 
-**STOMP** is a computational framework for debiasing and experimental uncertainty quantification in protein structural models resolved by molecular replacement.
+**STOMP** (**ST**ochastic **OM**it **P**erturbation maps) is a computational framework for debiasing and experimental uncertainty quantification in protein structural models resolved by molecular replacement.
 
 It provides a three-stage pipeline that runs on HPC clusters via SLURM:
 
