@@ -19,7 +19,7 @@ ENV_SETUP = """
 module load phenix/{phenix_version}
 """
 
-EXECUTION_PREPROCESSING = """
+EXECUTION_PREPROCESSING = r"""
 TASK_INFO=$(sed -n "${{SLURM_ARRAY_TASK_ID}}p" "{preprocess_manifest}")
 
 
