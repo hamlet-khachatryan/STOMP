@@ -3,10 +3,9 @@ import numpy as np
 
 from analyse.muse.pipeline import export_summary
 
-def _atom(score, clash=False, missing=False, unaccounted=False):
+def _atom(score, missing=False, unaccounted=False):
     a = MagicMock()
     a.score = score
-    a.has_clash = clash
     a.has_missing_density = missing
     a.has_unaccounted_density = unaccounted
     return a
@@ -27,7 +26,7 @@ def test_export_summary_keys():
     expected_keys = {
         "n_atoms", "n_residues", "opia",
         "mean_atom_score", "median_atom_score",
-        "n_clashes", "n_missing_density", "n_unaccounted_density",
+        "n_missing_density", "n_unaccounted_density",
         "global_mean", "global_sigma",
     }
     assert expected_keys == set(summary.keys())
@@ -36,13 +35,12 @@ def test_export_summary_keys():
 def test_export_summary_counts():
     atoms = [
         _atom(0.9),
-        _atom(0.2, clash=True),
         _atom(0.1, missing=True),
         _atom(0.3, unaccounted=True),
     ]
     summary = export_summary(_result(atoms))
-    assert summary["n_atoms"] == 4
-    assert summary["n_clashes"] == 1
+    assert summary["n_atoms"] == 3
+    assert "n_clashes" not in summary
     assert summary["n_missing_density"] == 1
     assert summary["n_unaccounted_density"] == 1
 

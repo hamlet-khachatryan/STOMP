@@ -62,7 +62,7 @@ Configured entirely via CLI flags (no YAML):
 | `--input_path` | `-p` | path | *required* | Workspace directory produced by `stomp-debias`.                                                                        |
 | `--stem` | `-s` | str | auto | Explicit experiment stem. Inferred automatically if omitted.                                                            |
 | `--k_factor` | `-k` | float | `1.0` | Radius multiplier K for atom ownership spheres. Pass `0` to skip marginal bias removal and produce an ensemble average. |
-| `--map_cap` | `-c` | int | `50` | Limit processing to the first N maps (for convergence testing).                                                         |
+| `--map_cap` | `-c` | int or `auto` | `50` | Use maps 0 to N-1 for every structure, or `auto` for each structure's full omission schedule. A cap above a structure's schedule, or a missing map, skips that structure. |
 | `--force` | `-f` | flag | `False` | Overwrite existing results.                                                                                             |
 
 ---
@@ -78,7 +78,7 @@ Configured entirely via CLI flags (no YAML):
 | `--map_path` | `-m` | path | auto | Override the auto-discovered SNR map with a custom CCP4 file. |
 | `--model_path` | | path | auto | Override the processed model with a custom PDB/CIF file. |
 | `--k_factor` | `-k` | float | `1.0` | K factor used to locate the SNR map in `quantify_results/`. |
-| `--map_cap` | `-c` | int | `50` | Map cap used to locate the SNR map. Pass `0` to auto-detect. |
+| `--map_cap` | `-c` | int or `auto` | `auto` | Map cap used to locate the SNR map. `auto` (or `0`) uses the highest cap for each structure. |
 | `--num_processes` | `-n` | int | `1` | Parallel worker processes for screening mode. |
 | `--significance_alpha` | `-a` | float | `0.05` | Significance level α for the null-distribution SNR threshold. |
 
@@ -130,7 +130,6 @@ These are Python-only parameters, passed to `run_muse()` via a `MUSEConfig` obje
 | `ediam_shift` | float | `0.1` | Shift *s* in the MUSEm power mean. |
 | `ediam_exponent` | float | `−2.0` | Exponent *p* in the MUSEm power mean (negative = soft-minimum). |
 | `opia_threshold` | float | `0.8` | MUSE score threshold for OPIA counting. |
-| `clash_threshold` | float | `0.1` | Fractional sphere overlap that triggers a clash flag. |
 | `unaccounted_density_threshold` | float | `0.2` | `|MUSE−|` above which unaccounted density is flagged. |
 | `missing_density_threshold` | float | `0.8` | `MUSE+` below which missing density is flagged. |
 

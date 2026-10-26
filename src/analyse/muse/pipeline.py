@@ -227,13 +227,7 @@ def run_muse(
 
     if run_error_diagnostics:
         with eliot.start_action(action_type="muse:diagnostics"):
-            run_diagnostics(
-                atom_scores=atom_scores,
-                model=model,
-                atom_id_to_position=positions,
-                atom_id_to_radius=radii,
-                config=config.aggregation,
-            )
+            run_diagnostics(atom_scores=atom_scores, config=config.aggregation)
 
     with eliot.start_action(action_type="muse:aggregation"):
         residue_scores = aggregate_by_residue(atom_scores, config.aggregation)
@@ -262,7 +256,7 @@ def export_atom_csv(result: MUSEResult, output_path: str) -> None:
     fieldnames = [
         "chain_id", "residue_name", "residue_seq_id", "insertion_code",
         "atom_name", "element", "score", "score_positive", "score_negative",
-        "is_water", "has_clash", "has_missing_density", "has_unaccounted_density",
+        "is_water", "has_missing_density", "has_unaccounted_density",
         "radius_used", "n_grid_points",
     ]
     _write_csv(output_path, fieldnames, [
@@ -277,7 +271,6 @@ def export_atom_csv(result: MUSEResult, output_path: str) -> None:
             "score_positive": f"{a.score_positive:.6f}",
             "score_negative": f"{a.score_negative:.6f}",
             "is_water": a.is_water,
-            "has_clash": a.has_clash,
             "has_missing_density": a.has_missing_density,
             "has_unaccounted_density": a.has_unaccounted_density,
             "radius_used": f"{a.radius_used:.4f}",
@@ -294,7 +287,7 @@ def export_residue_csv(result: MUSEResult, output_path: str) -> None:
     fieldnames = [
         "chain_id", "residue_name", "residue_seq_id", "insertion_code",
         "musem_score", "min_atom_score", "median_atom_score", "max_atom_score",
-        "n_atoms", "n_clashes", "n_missing_density", "n_unaccounted_density",
+        "n_atoms", "n_missing_density", "n_unaccounted_density",
     ]
     _write_csv(output_path, fieldnames, [
         {
@@ -307,7 +300,6 @@ def export_residue_csv(result: MUSEResult, output_path: str) -> None:
             "median_atom_score": f"{r.median_atom_score:.6f}",
             "max_atom_score": f"{r.max_atom_score:.6f}",
             "n_atoms": r.n_atoms,
-            "n_clashes": sum(1 for a in r.atom_scores if a.has_clash),
             "n_missing_density": sum(1 for a in r.atom_scores if a.has_missing_density),
             "n_unaccounted_density": sum(1 for a in r.atom_scores if a.has_unaccounted_density),
         }
@@ -327,7 +319,6 @@ def export_summary(result: MUSEResult) -> dict:
         "opia": result.opia,
         "mean_atom_score": float(np.mean(scores)) if scores else 0.0,
         "median_atom_score": float(np.median(scores)) if scores else 0.0,
-        "n_clashes": sum(1 for a in result.atom_scores if a.has_clash),
         "n_missing_density": sum(1 for a in result.atom_scores if a.has_missing_density),
         "n_unaccounted_density": sum(1 for a in result.atom_scores if a.has_unaccounted_density),
         "global_mean": result.global_mean,

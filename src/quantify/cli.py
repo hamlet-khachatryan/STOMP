@@ -1,4 +1,5 @@
 import click
+from common.cli_types import MAP_CAP
 from quantify.api import run_quantification
 
 
@@ -33,10 +34,11 @@ from quantify.api import run_quantification
 @click.option(
     "--map_cap",
     "-c",
-    default=50,
-    type=int,
+    default="50",
+    type=MAP_CAP,
     show_default=True,
-    help="Number of maps to use from the ensemble. Uses maps 0 to N-1.",
+    help="Number of maps to use from the ensemble (maps 0 to N-1), applied to every structure. "
+    "Pass 'auto' to use each structure's full omission schedule, e.g. 50 for one and 55 for another.",
 )
 @click.option(
     "--num_processes",

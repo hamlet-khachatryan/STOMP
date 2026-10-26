@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import json
+import math
+import re
 import time
 import eliot
 from dataclasses import replace
 from functools import partial
 from multiprocessing import Pool
 from pathlib import Path
-from typing import Optional
+from typing import Dict, List, Optional, Tuple
 
 import gemmi
 
@@ -27,12 +29,45 @@ from quantify.utils import find_experiments, get_experiment_paths
 
 
 _DEFAULT_K_FACTOR = 1.0
-_DEFAULT_MAP_CAP = 50
+_DEFAULT_MAP_CAP = None  # highest cap quantified at this k
+
+# stomp-quantify writes quantify_results/k_{k}_cap_{cap}/ and metadata/{stem}_null_params_k{k}_cap{cap}.json
+_RUN_DIR_RE = re.compile(r"^k_(?P<k>.+)_cap_(?P<cap>\d+)$")
+_NULL_PARAMS_RE = re.compile(r"^_null_params_k(?P<k>.+)_cap(?P<cap>\d+)\.json$")
 
 
-def _resolve_map_path(paths: dict, k_factor: float, map_cap: Optional[int]) -> Path:
+def _parse_k_cap(text: str, pattern: re.Pattern) -> Optional[Tuple[float, int]]:
     """
-    Locate the SNR CCP4 map for the given k_factor/map_cap. Auto-detects highest cap if map_cap is None
+    Parse (k, cap) from a quantify run name. Returns None if the name does not match
+    """
+
+    match = pattern.match(text)
+    if not match:
+        return None
+    try:
+        return float(match["k"]), int(match["cap"])
+    except ValueError:
+        return None
+
+
+def _same_k(a: float, b: float) -> bool:
+    """
+    Compare k factors numerically so that k_1 and k_1.0 refer to the same run
+    """
+
+    return math.isclose(float(a), float(b), rel_tol=0.0, abs_tol=1e-9)
+
+
+def _format_runs(runs: List[Tuple[float, int]]) -> str:
+    if not runs:
+        return "none"
+    return "; ".join(f"k={k}, cap={cap}" for k, cap in sorted(runs))
+
+
+def _resolve_map_path(paths: dict, k_factor: float, map_cap: Optional[int]) -> Tuple[Path, int]:
+    """
+    Locate the SNR CCP4 map for the given k_factor/map_cap and return it with its cap.
+    Auto-detects the highest cap for this k_factor if map_cap is None
     """
 
     stem = paths["stem"]
@@ -44,31 +79,63 @@ def _resolve_map_path(paths: dict, k_factor: float, map_cap: Optional[int]) -> P
             "Run 'stomp-quantify' before 'stomp-analyse'."
         )
 
+    available: List[Tuple[float, int]] = []
+    matching: Dict[int, Path] = {}
+    for run_dir in sorted(p for p in qdir.iterdir() if p.is_dir()):
+        parsed = _parse_k_cap(run_dir.name, _RUN_DIR_RE)
+        snr_path = run_dir / f"{stem}_snr.ccp4"
+        if parsed is None or not snr_path.exists():
+            continue
+        available.append(parsed)
+        run_k, run_cap = parsed
+        if not _same_k(run_k, k_factor):
+            continue
+        # prefer the folder named exactly as stomp-quantify names it for this k
+        if run_cap not in matching or run_dir.name == f"k_{k_factor}_cap_{run_cap}":
+            matching[run_cap] = snr_path
+
     if map_cap is not None:
-        snr_path = qdir / f"k_{k_factor}_cap_{map_cap}" / f"{stem}_snr.ccp4"
-        if not snr_path.exists():
-            raise FileNotFoundError(
-                f"SNR map not found at {snr_path}. "
-                f"Verify that quantification ran with k={k_factor} and cap={map_cap}, "
-                "or omit --map_cap to auto-detect."
-            )
-        return snr_path
+        if map_cap in matching:
+            return matching[map_cap], map_cap
+        raise FileNotFoundError(
+            f"SNR map not found for k={k_factor}, cap={map_cap} in {qdir}. "
+            f"Available runs: {_format_runs(available)}. "
+            "Pass --k_factor/--map_cap matching one of them, or --map_cap 0 to auto-detect the cap."
+        )
 
-    candidates = sorted(qdir.glob(f"k_{k_factor}_cap_*"))
-    for candidate in reversed(candidates):  # prefer highest cap
-        snr_path = candidate / f"{stem}_snr.ccp4"
-        if snr_path.exists():
-            return snr_path
-
-    default_snr = qdir / f"k_{_DEFAULT_K_FACTOR}_cap_{_DEFAULT_MAP_CAP}" / f"{stem}_snr.ccp4"
-    if default_snr.exists():
-        return default_snr
+    if matching:
+        best_cap = max(matching)
+        return matching[best_cap], best_cap
 
     raise FileNotFoundError(
         f"No SNR map found in {qdir} for k_factor={k_factor}. "
-        "Run 'stomp-debias' followed by 'stomp-quantify' to generate maps, "
-        "or provide a map explicitly with --map_path."
+        f"Available runs: {_format_runs(available)}. "
+        "Run 'stomp-quantify' with this k, or provide a map explicitly with --map_path."
     )
+
+
+def _run_from_map_location(
+    map_path: Path, k_factor: float, map_cap: Optional[int]
+) -> Tuple[float, Optional[int]]:
+    """
+    Return the (k, cap) of the quantify run an explicit map belongs to.
+
+    A map inside quantify_results/k_{k}_cap_{cap}/ was made by that run, so its
+    null parameters are used even if --k_factor/--map_cap say otherwise.
+    Maps from anywhere else fall back to the flags.
+    """
+
+    parsed = _parse_k_cap(Path(map_path).parent.name, _RUN_DIR_RE)
+    if parsed is None:
+        return k_factor, map_cap
+
+    run_k, run_cap = parsed
+    if not _same_k(run_k, k_factor) or (map_cap is not None and map_cap != run_cap):
+        print(
+            f"Warning: --map_path is in a k={run_k}, cap={run_cap} run, "
+            f"not k={k_factor}, cap={map_cap}. Using k={run_k}, cap={run_cap} for null params."
+        )
+    return run_k, run_cap
 
 
 def _resolve_model_path(paths: dict) -> Path:
@@ -82,31 +149,37 @@ def _resolve_model_path(paths: dict) -> Path:
     return model_path
 
 
-def _load_null_params(paths: dict, k_factor: float, map_cap: int) -> Optional[dict]:
+def _load_null_params(paths: dict, k_factor: float, map_cap: Optional[int]) -> Optional[dict]:
     """
-    Load fitted null-distribution parameters from metadata
+    Load the fitted null-distribution parameters for exactly this k_factor and map_cap.
+    Parameters from other runs are never used, since they describe a different SNR map
     """
 
-    null_params_path = (
-        paths["metadata_dir"]
-        / f"{paths['stem']}_null_params_k{k_factor}_cap{map_cap}.json"
-    )
-    if not null_params_path.exists():
-        candidates = list(paths["metadata_dir"].glob(f"{paths['stem']}_null_params_k*.json"))
-        if candidates:
-            null_params_path = candidates[0]
-            print(
-                f"Warning: null params for k={k_factor} cap={map_cap} not found. "
-                f"Using {null_params_path.name} instead."
-            )
-        else:
-            print(
-                "Warning: No null distribution parameters found in metadata/. "
-                "Significance threshold will use MUSE paper defaults. "
-                "Re-run 'stomp-quantify' to generate null params."
-            )
-            return None
-    with open(null_params_path) as fh:
+    stem = paths["stem"]
+    metadata_dir = paths["metadata_dir"]
+    candidates = sorted(metadata_dir.glob(f"{stem}_null_params_k*_cap*.json")) if metadata_dir.exists() else []
+
+    available: List[Tuple[float, int]] = []
+    match: Optional[Path] = None
+    for path in candidates:
+        parsed = _parse_k_cap(path.name[len(stem):], _NULL_PARAMS_RE)
+        if parsed is None:
+            continue
+        available.append(parsed)
+        if map_cap is not None and _same_k(parsed[0], k_factor) and parsed[1] == map_cap:
+            if match is None or path.name == f"{stem}_null_params_k{k_factor}_cap{map_cap}.json":
+                match = path
+
+    if match is None:
+        print(
+            f"Warning: no null distribution parameters for k={k_factor}, cap={map_cap} in "
+            f"{metadata_dir} (available: {_format_runs(available)}). "
+            "Significance threshold will use MUSE paper defaults. "
+            "Re-run 'stomp-quantify' with these settings to generate them."
+        )
+        return None
+
+    with open(match) as fh:
         return json.load(fh)
 
 
@@ -160,8 +233,10 @@ def _analyse_single(
                 resolved_map = Path(map_path)
                 if not resolved_map.exists():
                     raise FileNotFoundError(f"Provided map not found: {map_path}")
+                run_k, run_cap = _run_from_map_location(resolved_map, k_factor, map_cap)
             else:
-                resolved_map = _resolve_map_path(paths, k_factor, map_cap)
+                resolved_map, run_cap = _resolve_map_path(paths, k_factor, map_cap)
+                run_k = k_factor
 
             if model_path:
                 resolved_model = Path(model_path)
@@ -187,11 +262,13 @@ def _analyse_single(
         eliot.log_message(
             message_type="analyse:params",
             map=resolved_map.name,
+            k_factor=run_k,
+            map_cap=run_cap,
             model=resolved_model.name,
             resolution_angstrom=round(resolution, 3),
         )
 
-        null_params = _load_null_params(paths, k_factor, map_cap if map_cap is not None else _DEFAULT_MAP_CAP)
+        null_params = _load_null_params(paths, run_k, run_cap)
         significance_threshold = None
         base_config = snr_map_config()
         if null_params is not None:
@@ -219,6 +296,9 @@ def _analyse_single(
         export_residue_csv(result, str(out_dir / f"{stem}_residues.csv"))
 
         summary = export_summary(result)
+        summary["map_path"] = str(resolved_map)
+        summary["k_factor"] = run_k
+        summary["map_cap"] = run_cap
         summary["significance_alpha"] = significance_alpha
         summary["significance_snr_threshold"] = significance_threshold
         with open(out_dir / f"{stem}_summary.json", "w") as fh:

@@ -1,4 +1,5 @@
 import click
+from common.cli_types import MAP_CAP
 from analyse.api import run_analysis
 from analyse.screen_report import generate_screen_report
 
@@ -44,11 +45,11 @@ from analyse.screen_report import generate_screen_report
 @click.option(
     "--map_cap",
     "-c",
-    default=50,
-    type=int,
+    default="auto",
+    type=MAP_CAP,
     show_default=True,
     help="Map cap used during quantification run. Used to locate the SNR map. "
-    "Pass 0 to auto-detect the highest available cap.",
+    "'auto' (or 0) picks the highest cap quantified for each structure at this k.",
 )
 @click.option(
     "--num_processes",
@@ -96,7 +97,7 @@ def analyse_cli(input_path, stem, map_path, model_path, k_factor, map_cap,
             map_path=map_path,
             model_path=model_path,
             k_factor=k_factor,
-            map_cap=map_cap if map_cap > 0 else None,
+            map_cap=map_cap,
             num_processes=num_processes,
             significance_alpha=significance_alpha,
         )

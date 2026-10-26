@@ -212,7 +212,7 @@ def _extract_lig_muse(
 ) -> Dict[str, Any]:
     empty = {k: "N/A" for k in [
         "musem_score","min_atom_score","median_atom_score","max_atom_score",
-        "n_atoms","n_clashes","n_missing_density","n_unaccounted_density",
+        "n_atoms","n_missing_density","n_unaccounted_density",
     ]}
     empty["atom_scores"] = []
 
@@ -227,7 +227,6 @@ def _extract_lig_muse(
             "atom_name": a.get("atom_name", ""),
             "element": a.get("element", ""),
             "score": _safe_float(a.get("score")),
-            "has_clash": a.get("has_clash", "False").strip().lower() == "true",
             "has_missing_density": a.get("has_missing_density", "False").strip().lower() == "true",
             "has_unaccounted_density": a.get("has_unaccounted_density", "False").strip().lower() == "true",
         }
@@ -240,7 +239,6 @@ def _extract_lig_muse(
         "median_atom_score":     _safe_float(row.get("median_atom_score")),
         "max_atom_score":        _safe_float(row.get("max_atom_score")),
         "n_atoms":               _safe_int(row.get("n_atoms")),
-        "n_clashes":             _safe_int(row.get("n_clashes")),
         "n_missing_density":     _safe_int(row.get("n_missing_density")),
         "n_unaccounted_density": _safe_int(row.get("n_unaccounted_density")),
         "atom_scores":           atom_scores,
@@ -390,7 +388,6 @@ def collect_experiment(
         "n_residues":                  _safe_int(summary.get("n_residues")) if summary else "N/A",
         "mean_atom_score":             _safe_float(summary.get("mean_atom_score")) if summary else "N/A",
         "median_atom_score":           _safe_float(summary.get("median_atom_score")) if summary else "N/A",
-        "n_clashes_total":             _safe_int(summary.get("n_clashes")) if summary else "N/A",
         "n_missing_density_total":     _safe_int(summary.get("n_missing_density")) if summary else "N/A",
         "n_unaccounted_density_total": _safe_int(summary.get("n_unaccounted_density")) if summary else "N/A",
         "significance_alpha":          _safe_float(summary.get("significance_alpha")) if summary else "N/A",
@@ -809,7 +806,7 @@ def _error_result(
 ) -> Dict[str, Any]:
     na_muse: Dict[str, Any] = {k: "N/A" for k in [
         "musem_score","min_atom_score","median_atom_score","max_atom_score",
-        "n_atoms","n_clashes","n_missing_density","n_unaccounted_density",
+        "n_atoms","n_missing_density","n_unaccounted_density",
     ]}
     na_muse["atom_scores"] = []
     return {
@@ -817,7 +814,7 @@ def _error_result(
         "analysis_complete": False, "error": str(exc),
         "opia": "N/A", "n_atoms": "N/A", "n_residues": "N/A",
         "mean_atom_score": "N/A", "median_atom_score": "N/A",
-        "n_clashes_total": "N/A", "n_missing_density_total": "N/A",
+        "n_missing_density_total": "N/A",
         "n_unaccounted_density_total": "N/A",
         "significance_alpha": "N/A", "significance_snr_threshold": "N/A",
         "lig_resname": lig_resname, "lig_muse": na_muse,

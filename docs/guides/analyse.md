@@ -34,7 +34,7 @@ stomp-analyse --input_path /scratch/results/my_screen --num_processes 8
 | `--map_path` | `-m` | auto | Custom CCP4 map instead of the auto-discovered SNR map. |
 | `--model_path` | | auto | Custom PDB/CIF instead of the processed model. |
 | `--k_factor` | `-k` | `1.0` | K factor used to locate the SNR map in `quantify_results/`. |
-| `--map_cap` | `-c` | `50` | Map cap used to locate the SNR map. Pass `0` for auto-detect. |
+| `--map_cap` | `-c` | `auto` | Map cap used to locate the SNR map. `auto` (or `0`) uses the highest cap quantified for each structure at this k. |
 | `--num_processes` | `-n` | `1` | Parallel workers for screening mode. |
 | `--significance_alpha` | `-a` | `0.05` | Significance level α for the null-distribution threshold. |
 
@@ -217,6 +217,8 @@ fig2.savefig("water_support.pdf")
 ## Significance threshold
 
 When null-distribution parameters are present in `metadata/` (produced by `stomp-quantify`), `stomp-analyse` automatically sets the OPIA and missing-density thresholds to the SNR value at `p = significance_alpha`. This adapts the scoring to the actual noise floor of the experiment. The threshold is reported in the **SNR (p≤0.05)** column of the screen report and embedded in `{stem}_summary.json` as `significance_snr_threshold`.
+
+The SNR map and its null parameters are matched to the same quantify run: the k factor is compared as a number (`k_1` and `k_1.0` are the same run) and the cap as an integer. With `--map_cap auto` (the default) the highest cap for that k is used per structure. A run with a different k or cap is never substituted: if the map is missing the experiment is skipped with a list of the runs that exist, and if only the null parameters are missing the paper defaults are used with a warning. When `--map_path` points inside `quantify_results/k_{k}_cap_{cap}/`, that folder's k and cap are used for the null parameters. `{stem}_summary.json` records the `map_path`, `k_factor` and `map_cap` that were actually used.
 
 ---
 

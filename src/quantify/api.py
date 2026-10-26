@@ -24,30 +24,106 @@ from quantify.utils import (
 )
 
 
+class MapCapError(ValueError):
+    """The requested map cap does not fit this structure's ensemble"""
+
+
+def _map_path(results_dir: Path, stem: str, i: int) -> Path:
+    return results_dir / f"{stem}_{i}" / f"{stem}_{i}.mtz"
+
+
+def schedule_length(omission_map: Optional[dict]) -> Optional[int]:
+    """
+    Number of maps debias scheduled: highest omitted map id + 1
+    """
+
+    if not omission_map:
+        return None
+    ids = [i for map_ids in omission_map.values() for i in map_ids]
+    return max(ids) + 1 if ids else None
+
+
+def never_omitted(omission_map: Optional[dict], map_cap: int) -> list:
+    """
+    Owners whose omissions all fall at or beyond the cap, so their bias cannot be estimated
+    """
+
+    if not omission_map:
+        return []
+    return [owner for owner, ids in omission_map.items() if ids and min(ids) >= map_cap]
+
+
+def _check_maps_present(results_dir: Path, stem: str, map_cap: int):
+    # every row lines up with an omission schedule, so a gap cannot be skipped or zero-filled
+    missing = [i for i in range(map_cap) if not _map_path(results_dir, stem, i).exists()]
+    if missing:
+        shown = missing if len(missing) <= 10 else missing[:10] + ["..."]
+        hint = (
+            f"Re-run with --map_cap {missing[0]} to use only the complete maps 0-{missing[0] - 1}, "
+            if missing[0] >= 2
+            else ""
+        )
+        raise FileNotFoundError(
+            f"{len(missing)} of {map_cap} maps missing for {stem} (indices {shown}). "
+            f"{hint}or regenerate the missing maps with stomp-debias."
+        )
+
+
+def resolve_map_cap(
+    results_dir: Path, stem: str, map_cap: Optional[int], n_scheduled: Optional[int]
+) -> int:
+    """
+    Number of maps to use for this structure. None means every scheduled map
+    (or, without a schedule, every consecutive map on disk). Raises if the cap
+    exceeds the schedule or any of maps 0 to cap-1 is missing.
+    """
+
+    if n_scheduled is not None and map_cap is not None and map_cap > n_scheduled:
+        raise MapCapError(
+            f"--map_cap {map_cap} exceeds the {n_scheduled} maps debias scheduled for {stem}. "
+            f"Use --map_cap {n_scheduled} or --map_cap auto."
+        )
+
+    available = n_scheduled
+    if available is None:
+        available = 0
+        while _map_path(results_dir, stem, available).exists():
+            available += 1
+
+    cap = available if map_cap is None else map_cap
+    if cap < 2:
+        raise MapCapError(f"Need at least 2 maps for {stem} to estimate noise, got {cap}.")
+
+    _check_maps_present(results_dir, stem, cap)
+
+    if cap < available:
+        print(
+            f"Note: using {cap} of {available} maps for {stem}; maps {cap}-{available - 1} are "
+            "ignored, so owners omitted in them have fewer omitted samples. "
+            "Use --map_cap auto to use them all."
+        )
+    return cap
+
+
 def load_ensemble(results_dir: Path, stem: str, map_cap: Optional[int]):
     """
     Loads MTZ files into a 4D numpy array
     """
 
-    first_path = results_dir / f"{stem}_0" / f"{stem}_0.mtz"
+    first_path = _map_path(results_dir, stem, 0)
     if not first_path.exists():
         raise FileNotFoundError("First map not found")
+
+    _check_maps_present(results_dir, stem, map_cap)
+    map_paths = [_map_path(results_dir, stem, i) for i in range(map_cap)]
 
     ref_map = read_mtz(str(first_path))
     ref_grid = ref_map.grid
     shape = ref_grid.shape
 
     ensemble_array = np.zeros((map_cap, *shape), dtype=np.float32)
-
-    for i in range(map_cap):
-        p = results_dir / f"{stem}_{i}" / f"{stem}_{i}.mtz"
-        if p.exists():
-            temp_grid = read_mtz(str(p)).grid
-            ensemble_array[i] = temp_grid.array
-
-        else:
-            print(f"Warning: Missing map {i} at {p}. Skipping.")
-            continue
+    for i, p in enumerate(map_paths):
+        ensemble_array[i] = read_mtz(str(p)).grid.array
 
     return ensemble_array, ref_grid
 
@@ -84,26 +160,56 @@ def _quantify_single(paths: dict, force: bool, k_factor: float, map_cap: Optiona
     ):
         start_time = time.time()
 
-        current_map_cap = map_cap
-        if current_map_cap is None:
-            files = list(paths["results_dir"].glob(f"*/{stem}_*.mtz"))
-            current_map_cap = len(files)
+        res_ref = _map_path(paths["results_dir"], stem, 0)
+        if not res_ref.exists():
+            print(f"Skipping {stem}: no perturbation maps found in results directory.")
+            eliot.log_message(message_type="quantify:skipped", stem=stem, reason="no_maps")
+            return
+
+        omission_map = None
+        if paths["omission_json"].exists():
+            omission_map = ownership_logic.load_omission_map(paths["omission_json"])
+        elif k_factor != 0:
+            print(f"Skipping {stem}: omission map not found.")
+            eliot.log_message(message_type="quantify:skipped", stem=stem, reason="omission_json_missing")
+            return
+
+        try:
+            n_scheduled = schedule_length(omission_map)
+            current_map_cap = resolve_map_cap(paths["results_dir"], stem, map_cap, n_scheduled)
+        except (FileNotFoundError, MapCapError) as exc:
+            print(f"Skipping {stem}: {exc}")
+            eliot.log_message(
+                message_type="quantify:skipped",
+                stem=stem,
+                reason="missing_maps" if isinstance(exc, FileNotFoundError) else "map_cap_mismatch",
+                detail=str(exc),
+            )
+            return
+
+        unestimated = never_omitted(omission_map, current_map_cap) if k_factor != 0 else []
+        if unestimated:
+            print(
+                f"WARNING: with --map_cap {current_map_cap}, {len(unestimated)} of {len(omission_map)} "
+                f"owners of {stem} are never omitted, so their model bias is not removed "
+                "and the SNR around them is biased. Raise --map_cap or use --map_cap auto."
+            )
+            eliot.log_message(
+                message_type="quantify:warning",
+                stem=stem,
+                reason="owners_never_omitted",
+                n_owners=len(unestimated),
+                map_cap=current_map_cap,
+            )
 
         out_dir = paths["quantify_dir"] / f"k_{k_factor}_cap_{current_map_cap}"
-        out_dir.mkdir(exist_ok=True, parents=True)
 
         if not force and (out_dir / f"{stem}_snr.ccp4").exists():
             print(f"Results exist for {stem}. Use --force to overwrite.")
             eliot.log_message(message_type="quantify:skipped", stem=stem, reason="results_exist")
             return
 
-        print(f"--- Quantifying {stem} (K={k_factor}) ---")
-
-        res_ref = paths["results_dir"] / f"{stem}_0" / f"{stem}_0.mtz"
-        if not res_ref.exists():
-            print(f"Skipping {stem}: no perturbation maps found in results directory.")
-            eliot.log_message(message_type="quantify:skipped", stem=stem, reason="no_maps")
-            return
+        print(f"--- Quantifying {stem} (K={k_factor}, maps={current_map_cap}) ---")
 
         mtz = gemmi.read_mtz_file(str(res_ref))
         resolution = mtz.resolution_high()
@@ -116,14 +222,9 @@ def _quantify_single(paths: dict, force: bool, k_factor: float, map_cap: Optiona
                 resolution_angstrom=round(resolution, 3),
                 omission_mode="none (k=0, plain average)",
                 map_cap=current_map_cap,
+                n_scheduled=n_scheduled,
             )
         else:
-            if not paths["omission_json"].exists():
-                print(f"Skipping {stem}: omission map not found.")
-                eliot.log_message(message_type="quantify:skipped", stem=stem, reason="omission_json_missing")
-                return
-
-            omission_map = ownership_logic.load_omission_map(paths["omission_json"])
             mode = infer_omission_mode(omission_map)
 
             eliot.log_message(
@@ -131,6 +232,7 @@ def _quantify_single(paths: dict, force: bool, k_factor: float, map_cap: Optiona
                 resolution_angstrom=round(resolution, 3),
                 omission_mode=mode,
                 map_cap=current_map_cap,
+                n_scheduled=n_scheduled,
             )
 
             with eliot.start_action(action_type="quantify:build_spatial_index"):
@@ -153,6 +255,15 @@ def _quantify_single(paths: dict, force: bool, k_factor: float, map_cap: Optiona
                 detail=str(exc),
             )
             return
+        except FileNotFoundError as exc:
+            print(f"Skipping {stem}: {exc}")
+            eliot.log_message(
+                message_type="quantify:skipped",
+                stem=stem,
+                reason="missing_maps",
+                detail=str(exc),
+            )
+            return
 
         nx, ny, nz = data.shape[1:]
         with eliot.start_action(
@@ -162,6 +273,7 @@ def _quantify_single(paths: dict, force: bool, k_factor: float, map_cap: Optiona
         ):
             sig, nos, snr = aggregator.aggregate_ensemble(data, grid, spatial_index)
 
+        out_dir.mkdir(exist_ok=True, parents=True)
         save_map(sig, grid, out_dir / f"{stem}_mean.ccp4")
         save_map(nos, grid, out_dir / f"{stem}_std.ccp4")
         save_map(snr, grid, out_dir / f"{stem}_snr.ccp4")

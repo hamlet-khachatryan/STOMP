@@ -99,8 +99,8 @@ run_quantification(
     input_path: Path | str,
     stem: str | None = None,
     force: bool = False,
-    k_factor: float = 1.5,
-    map_cap: int | None = None,
+    k_factor: float = 1.0,
+    map_cap: int | None = 50,
     num_processes: int = 1,
 ) -> None
 ```
@@ -112,8 +112,8 @@ Run bias separation on a single experiment or a screening workspace. In screenin
 | `input_path` | `Path \| str` | *required* | Workspace produced by `stomp-debias`.         |
 | `stem` | `str \| None` | auto | Explicit experiment stem, inferred if omitted. |
 | `force` | `bool` | `False` | Overwrite existing `quantify_results/`.        |
-| `k_factor` | `float` | `1.5` | Radius multiplier K for ownership spheres.     |
-| `map_cap` | `int \| None` | `None` | Use only the first N maps, `None` uses all.    |
+| `k_factor` | `float` | `1.0` | Radius multiplier K for ownership spheres.     |
+| `map_cap` | `int \| None` | `50` | Use maps 0 to N-1. `None` uses each structure's full omission schedule. A cap above the schedule or a missing map skips the structure. |
 | `num_processes` | `int` | `1` | Parallel workers for screening mode.           |
 
 **Example:**
@@ -172,7 +172,7 @@ run_analysis(
     map_path: str | None = None,
     model_path: str | None = None,
     k_factor: float = 1.0,
-    map_cap: int | None = 50,
+    map_cap: int | None = None,
     num_processes: int = 1,
     significance_alpha: float = 0.05,
 ) -> None
@@ -187,7 +187,7 @@ Score every heavy atom against the SNR map for one experiment or a whole screeni
 | `map_path` | `str \| None` | auto | Custom CCP4 map path (overrides SNR map discovery). |
 | `model_path` | `str \| None` | auto | Custom PDB/CIF path (overrides processed model). |
 | `k_factor` | `float` | `1.0` | K factor used to locate the SNR map. |
-| `map_cap` | `int \| None` | `50` | Map cap used to locate the SNR map. |
+| `map_cap` | `int \| None` | `None` | Map cap used to locate the SNR map. `None` uses the highest cap for each structure. |
 | `num_processes` | `int` | `1` | Parallel workers for screening mode. |
 | `significance_alpha` | `float` | `0.05` | Significance level α for the null-distribution threshold. |
 
@@ -233,7 +233,7 @@ Run the full MUSE scoring pipeline and return a `MUSEResult` containing per-atom
 | `resolution` | `float` | *required* | Map resolution in Å (drives atom radius lookup).              |
 | `config` | `MUSEConfig \| None` | `None` | Scoring config (`None` uses `default_config()`).              |
 | `skip_hydrogens` | `bool` | `True` | Exclude H/D atoms from scoring.                               |
-| `run_error_diagnostics` | `bool` | `True` | Compute clash, missing-density and unaccounted-density flags. |
+| `run_error_diagnostics` | `bool` | `True` | Compute missing-density and unaccounted-density flags.        |
 
 **Example:**
 
@@ -260,7 +260,7 @@ from analyse.muse.pipeline import export_atom_csv
 export_atom_csv(result: MUSEResult, output_path: str) -> None
 ```
 
-Write per-atom scores to a CSV. Columns: `chain_id`, `residue_name`, `residue_seq_id`, `insertion_code`, `atom_name`, `element`, `score`, `score_positive`, `score_negative`, `is_water`, `has_clash`, `has_missing_density`, `has_unaccounted_density`, `radius_used`, `n_grid_points`.
+Write per-atom scores to a CSV. Columns: `chain_id`, `residue_name`, `residue_seq_id`, `insertion_code`, `atom_name`, `element`, `score`, `score_positive`, `score_negative`, `is_water`, `has_missing_density`, `has_unaccounted_density`, `radius_used`, `n_grid_points`.
 
 ---
 
@@ -272,7 +272,7 @@ from analyse.muse.pipeline import export_residue_csv
 export_residue_csv(result: MUSEResult, output_path: str) -> None
 ```
 
-Write per-residue MUSEm scores to a CSV. Columns: `chain_id`, `residue_name`, `residue_seq_id`, `insertion_code`, `musem_score`, `min_atom_score`, `median_atom_score`, `max_atom_score`, `n_atoms`, `n_clashes`, `n_missing_density`, `n_unaccounted_density`.
+Write per-residue MUSEm scores to a CSV. Columns: `chain_id`, `residue_name`, `residue_seq_id`, `insertion_code`, `musem_score`, `min_atom_score`, `median_atom_score`, `max_atom_score`, `n_atoms`, `n_missing_density`, `n_unaccounted_density`.
 
 ---
 
@@ -293,7 +293,6 @@ Return a flat `dict` with global run statistics:
 | `opia` | OPIA metric |
 | `mean_atom_score` | Mean MUSE score across all atoms |
 | `median_atom_score` | Median MUSE score |
-| `n_clashes` | Atoms flagged with steric clashes |
 | `n_missing_density` | Atoms with insufficient density support |
 | `n_unaccounted_density` | Atoms with excess density in donut region |
 | `global_mean` | Map mean used for normalisation |

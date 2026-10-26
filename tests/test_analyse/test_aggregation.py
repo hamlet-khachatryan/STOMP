@@ -91,7 +91,6 @@ def _atom_score(chain, res_name, seq_id, score, ins=""):
     a.residue_seq_id = seq_id
     a.insertion_code = ins
     a.score = score
-    a.has_clash = False
     a.has_missing_density = False
     a.has_unaccounted_density = False
     return a

@@ -37,7 +37,6 @@ class AtomScore:
         score_positive: Contribution from positive-weight region only
         score_negative: Contribution from negative-weight region only
         is_water: Whether this atom was scored with water-specific logic
-        has_clash: Whether a steric clash was detected
         has_unaccounted_density: Whether unaccounted density was flagged
         has_missing_density: Whether missing density was flagged
         radius_used: The resolution-dependent radius used for this atom
@@ -55,7 +54,6 @@ class AtomScore:
     score_positive: float
     score_negative: float
     is_water: bool
-    has_clash: bool = False
     has_unaccounted_density: bool = False
     has_missing_density: bool = False
     radius_used: float = 0.0

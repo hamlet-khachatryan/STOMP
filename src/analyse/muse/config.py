@@ -93,7 +93,6 @@ class AggregationConfig:
     ediam_shift: float = 0.1
     ediam_exponent: float = -2.0
     opia_threshold: float = 0.8
-    clash_threshold: float = 0.1
     unaccounted_density_threshold: float = 0.2
     missing_density_threshold: float = 0.8
 
